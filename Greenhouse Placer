@@ -1,0 +1,391 @@
+//Givens:
+//Greenhouse Must be perpendicular to the face of greenhouses
+
+
+    //Objective TODO: 
+    //widths are parrallel to sun
+    //lengthes are perpendicular to the sun
+    //place lines by getting propper perpendicular slope 
+    //while loop down the lines until the endpts of the slope are on the lines functions
+    //draw line
+    //recursive
+    
+    //need to find centerroid and use to drawn first line
+    //greenhouse legnth will be a perpendicular line to the widths
+
+
+//background
+background(109, 255, 107);
+
+var sunX;
+
+var sunY;
+
+//all vertices
+var points = [];
+
+//current two points to draw line between
+var lineToDrawPoints = [];
+
+//line array where line objects made of 2 point objects are stored
+var linesDrawn = [];
+
+//true if line button clicked false otherwise
+var drawLine = false;
+
+//true if dot button clicked false otherwise
+var drawDot = false;
+
+//true if move is selected false otherwise
+var moveButton = false;
+
+//true if greenhouse button clicked false otherwise
+var drawGreenhouse = false;
+
+//Dimensions which can be changed later
+var minGreenhouseLength = 10;
+var greenhouseWidth = 5;
+
+var marginOfErrorForLengths = 1;
+
+//sunplaced
+var sunPlaced = false;
+
+//Line button
+fill(252, 252, 252);
+rect( 0, 0, 60, 60);
+fill(0, 0, 0);
+text( "line", 20 , 35 );
+
+//Dot button
+fill(252, 252, 252);
+rect( 0, 70, 60, 60);
+fill(0, 0, 0);
+text( "dot", 20 , 105 );
+
+//Place Sun button
+fill(252, 252, 252);
+rect( 0, 140, 60, 60);
+fill(0, 0, 0);
+text( "Sun", 20 , 175 );
+
+//draw greenhouse button
+fill(252, 252, 252);
+rect( 0, 300, 60, 60);
+fill(0, 0, 0);
+text( "add", 20 , 325 );
+text( "greenhouse", 0 , 335 );
+
+
+
+//point constructor
+function Point(x, y) {
+  this.x = x;
+  this.y = y;
+}
+
+
+
+//line constructor
+function Line( point1, point2) {
+  this.x1 = point1.x;
+  this.y1 = point1.y;
+  this.x2 = point2.x;
+  this.y2 = point2.y;
+}
+
+//sun constructor
+function Sun( x, y) 
+{
+    sunX = x;
+    sunY = y;
+    this.x = x;
+    this.y = y;
+    fill(255, 230, 0);
+    ellipse(x, y, 50, 50);
+    fill(0, 0, 0);
+}
+
+
+//gets point coordinate, checks list, if point in list makes point red
+//when second point in connected draws line and makes dots black again
+function drawLines(x, y)
+{
+    //text("in ", 100, 40);
+    for ( var i = 0; i < points.length; i++) 
+    {
+        var mousePoint = new Point( x, y );
+        
+        //text("mousePoint x " + mousePoint.x + " dotx = " + points[i].x, 100, 50);
+        
+        //checks if click is near the point
+        //TODO Fix bug of checking for the y coordinates here
+        if ( points[i].x > mousePoint.x - 5 && points[i].x < mousePoint.x + 5 )
+        {
+            //text(" x = " + x + " ygg = " + y, 100, 100);
+            //text(" pointx = " + points[i].x + " pointy = " + points[i].y, 100, 150);
+            fill(255, 0, 4);
+    
+            ellipse( points[i].x, points[i].y, 5, 5);
+            
+            lineToDrawPoints.push(points[i]);
+            if ( lineToDrawPoints.length > 1)
+            {
+                line( lineToDrawPoints[0].x, lineToDrawPoints[0].y, lineToDrawPoints[1].x, lineToDrawPoints[1].y);
+                
+                
+                //adds lines that are drawn to array
+                var point1 = new Point( lineToDrawPoints[0].x, lineToDrawPoints[0].y);
+                var point2 = new Point( lineToDrawPoints[1].x, lineToDrawPoints[1].y);
+                var lineToAdd = new Line( point1, point2);
+                linesDrawn.push(lineToAdd);
+                
+                //text("linesDrawnlength = " + linesDrawn.length, 100, 10);
+                //text("lineToAdd = " + lineToAdd.x1, 100, 40);
+                
+                fill(0, 0, 0);
+                ellipse( lineToDrawPoints[0].x, lineToDrawPoints[0].y, 5, 5);
+                ellipse( lineToDrawPoints[1].x, lineToDrawPoints[1].y, 5, 5);
+                
+                //sets array with two points to draw between to null
+                lineToDrawPoints = [];
+            }
+        }
+    }
+
+}
+
+
+//find node closest to the sun
+function findPointClosedToSun ()
+{
+    //Note You actually need to use the centroid of the polgon not the highest point to angle the greenhouses correctly
+    //So find the centeroid and use that to draw the rectangles
+    //find midpoint of each line and from there add up all the x/y and divide by #midpts
+    if ( points.length !== 0)
+    {
+        var highest = points[0];
+        for (var i = 0; i < points; i++) 
+        {
+            if ( highest.y < points[i].y )
+            {
+                highest = points[i];
+            }
+        }
+        return highest;
+    }
+    else
+    {
+        return 0;
+    }
+
+}
+
+//finds 2 lines containing highest point
+function findLinesAttachedToHighestPoint()
+{
+    var startingLines = [];
+    var highestPoint = findPointClosedToSun();
+    for ( var i = 0; i < linesDrawn.length; i++ )
+    {
+        if ( linesDrawn[i].y === highestPoint.y )
+        {
+            startingLines.push( linesDrawn[i] );
+        }
+    }
+    return startingLines();
+}
+
+//TODO Fix the bug here
+//calculates the point on the with half min distance from endpt
+function calculatePointOnLine ( slope, highestPt )
+{
+    
+    //var pointFound = false;
+    var x = highestPt.x;
+    var y = highestPt.y;
+    var b = ((y - (slope * x)) *-1) +y;
+    
+    text("B " + b , 300, 20);
+    ellipse(10, b, 20,20);
+    
+
+    var newX = 0;
+    var newY = (slope * newX) + b;
+    
+    text ("x = " + x + "y = " + y, 100, 20);
+    
+    //minGreenhouseLength/2
+    //calclatue so that line length is 5
+    var i = 0;
+    // while ( !pointFound )
+    // {
+    //     x += i;
+    //     y = slope * i;
+    //     var howFar = 0;
+    //     //text("x = " + x + " y = " + y + " slope = " + slope, 100, 20 * (i + 2));
+        
+    //     if ( x > 0 && y > 0)
+    //     {
+    //         howFar = dist( x, y, highestPt.x, highestPt.y);
+    //         text("howFar" + howFar, 100, 10 *(i+2));
+    //     }
+        
+    //     if ( howFar < (( minGreenhouseLength / 2 ) - marginOfErrorForLengths) )
+    //     {
+    //         //re
+    //     }
+    //     else if ( howFar > (( minGreenhouseLength / 2 ) + marginOfErrorForLengths) )
+    //     {
+            
+    //     }
+        
+    //     if ( howFar > (( minGreenhouseLength / 2 ) - marginOfErrorForLengths) && howFar < (( minGreenhouseLength / 2 ) + marginOfErrorForLengths))
+    //     {
+            
+    //         text("FOUND x = " + x + " y = " + y, 100, 20);
+    //         pointFound = true;
+            
+            
+    //     }
+        
+    //     i++;
+    // }
+    var dotToDrawn = new Point(newX,newY);
+    return dotToDrawn;
+}
+
+function debuggingDrawLineToHighestPoint()
+{
+    var highestPoint = findPointClosedToSun();
+    //text("highpt " + highestPoint.x + " " + highestPoint.y, 100, 100);
+    //var startingLines = findLinesAttachedToHighestPoint();
+    //text("sunx " + sunX + " sunY " + sunY , 200, 200);
+    //text("start lines length " + startingLines.length, 200, 200);
+    
+    
+    
+    var slopeSunToHighPoint;
+    var perpendicularSlopeSunToHighPoint;
+    if ( highestPoint.y > sunY)
+    {
+        slopeSunToHighPoint = (highestPoint.y - sunY)/((highestPoint.x - sunX)*-1);
+        
+    }
+    else if ( sunY > highestPoint.y )
+    {
+        slopeSunToHighPoint = (sunY - highestPoint.y)/((sunX - highestPoint.x)*-1);
+    }
+    perpendicularSlopeSunToHighPoint = 1 /(slopeSunToHighPoint *-1);
+    
+    text("parallel = " + slopeSunToHighPoint, 100, 300);
+    text("perpendi = " + perpendicularSlopeSunToHighPoint, 100, 350);
+    
+    stroke(255, 56, 255);
+    line( sunX, sunY, highestPoint.x, highestPoint.y);
+    fill(0, 0, 0);
+    
+    //var calulate point on the line of length minimumlength/2
+    var pointOnPerpen = calculatePointOnLine (perpendicularSlopeSunToHighPoint, highestPoint);
+    text("pt perpendicularline x " + pointOnPerpen.x + " y " + pointOnPerpen.y, 50 , 50);
+    stroke(56, 63, 255);
+    line( highestPoint.x, highestPoint.y, pointOnPerpen.x, pointOnPerpen.y);
+    fill(0, 0, 0);
+    
+}
+
+//draw line that is perpendicular to the point
+
+
+mouseClicked = function() {
+    var x = mouseX;
+    var y = mouseY;
+    //drawDot = false;
+    //drawLine = false;
+    
+    //checks if dot is selected, draws dot and adds to dot list
+    if ( drawDot && mouseX > 60 )
+    {
+        fill(0, 0, 0);
+    
+        ellipse(mouseX, mouseY, 5, 5);
+        
+        var currentPoint = new Point( mouseX, mouseY );
+        text(" px = " + x + " py = " + y, mouseX + 5, mouseY + 5);
+        
+        points.push( currentPoint );
+        
+        fill(0, 0, 0);
+        //text("x = " + mouseX + " y = " + mouseY + " pointssize = " + points.length, mouseX + 20, mouseY + 20);
+        
+    } 
+    else if ( drawLine === true && mouseX > 60 )
+    {
+        //text("IN", 100, 10);
+        drawLines( x, y);
+    }
+    else if ( drawGreenhouse === true && mouseX > 60 )
+    {
+        //call rect placing algorithym 
+    }
+    else if ( moveButton === true && mouseX > 60 && sunPlaced === false)
+    {
+        //text("Testy", mouseX, mouseY);
+        //text("Test", mouseX, mouseY);
+        Sun( mouseX, mouseY);
+        sunPlaced = true;
+        debuggingDrawLineToHighestPoint();
+    }
+    //var person = prompt("Please enter your name", "Harry Potter");
+    
+    //mouseclikced over where line button is
+    //then attach line to mouse
+    if ( mouseX < 60 && mouseY < 60 ) 
+    {
+        drawDot = false;
+        drawLine = true;
+        moveButton = false;
+    }
+    else if ( mouseX < 60 && mouseY < 130 && mouseY > 70 )
+    {
+        drawDot = true;
+        drawLine = false;
+        moveButton = false;
+    }
+    else if ( mouseX < 60 && mouseY < 200 && mouseY > 130 )
+    {
+        drawDot = false;
+        drawLine = false;
+        moveButton = true;
+    }
+};
+
+
+//
+function getSlopeOflLine()
+{
+    
+}
+
+function Rectangle( x, y, w, h, rotate)
+{
+    dist(10,20,30,40);
+    line(10,10,40,40);
+    //if bottom endpoints dot are not in either of the line functions then stop
+}
+
+    //find point given angle and line distances 
+function drawThePointsForRects ()
+{
+    
+    var sunX = Sun.x;
+    var sunX = Sun.y;
+}
+    // point(100, 100);
+    // ellipse(100, 100, 20, 20);
+    // line(100,100,200,200);
+    
+    // line(150,80,250,200);
+    
+    // var slope = -60/60;
+
